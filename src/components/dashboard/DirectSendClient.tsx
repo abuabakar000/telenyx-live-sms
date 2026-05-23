@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { ContactService } from '@/services/ContactService';
-import { createContactAction, getConversations, sendSMSAction } from '@/app/actions';
+import { createContactAction, getContactByPhoneNumberAction, sendSMSAction } from '@/app/actions';
 
 export default function DirectSendClient() {
   const router = useRouter();
@@ -33,27 +33,14 @@ export default function DirectSendClient() {
         const cleanPhone = ContactService.cleanPhoneNumber(phoneNumber);
 
         // 1. Check if contact exists by phone number, otherwise provision a quick contact
-        let contact;
-        try {
-          // We can query contacts or try creating one. Let's try creating/resolving contact.
+        let contact = await getContactByPhoneNumberAction(cleanPhone);
+        
+        if (!contact) {
           contact = await createContactAction({
             name: `Direct Contact (${cleanPhone})`,
             phoneNumber: cleanPhone,
             notes: 'Created via Direct SMS Sender.',
           });
-        } catch (err: any) {
-          // If contact already exists, let's fetch contacts to find it
-          const allConversations = await getConversations();
-          const existingConv = allConversations.find(c => c.contact.phoneNumber === cleanPhone);
-          if (existingConv) {
-            contact = existingConv.contact;
-          } else {
-            throw err;
-          }
-        }
-
-        if (!contact) {
-          throw new Error('Failed to resolve contact information.');
         }
 
         // 2. Send the SMS via our Server Action

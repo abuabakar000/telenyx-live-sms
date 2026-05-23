@@ -59,6 +59,15 @@ export async function getContactsAction(search?: string, tagId?: string) {
   }
 }
 
+export async function getContactByPhoneNumberAction(phone: string) {
+  try {
+    return await ContactService.getContactByPhoneNumber(phone);
+  } catch (error) {
+    console.error('Error fetching contact by phone: ', error);
+    return null;
+  }
+}
+
 export async function createContactAction(data: {
   name: string;
   phoneNumber: string;
