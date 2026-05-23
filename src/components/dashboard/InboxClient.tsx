@@ -206,7 +206,13 @@ export default function InboxClient({
 
   // 3. Send SMS Mutation
   const sendSMSMutation = useMutation({
-    mutationFn: () => sendSMSAction(activeContact.id, messageBody),
+    mutationFn: async () => {
+      const res = await sendSMSAction(activeContact.id, messageBody);
+      if (!res.success) {
+        throw new Error(res.error);
+      }
+      return res.message;
+    },
     onMutate: async () => {
       const tempMsgBody = messageBody;
       setMessageBody(''); // clear composer instantly

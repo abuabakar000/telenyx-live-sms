@@ -190,10 +190,10 @@ export async function sendSMSAction(contactId: string, body: string) {
   try {
     const message = await MessagingService.sendSMS(contactId, body);
     revalidatePath('/inbox');
-    return message;
+    return { success: true, message };
   } catch (error: any) {
     console.error('Error in sendSMSAction:', error);
-    throw new Error(error.message || 'Failed to transmit SMS.');
+    return { success: false, error: error.message || 'Failed to transmit SMS.' };
   }
 }
 
