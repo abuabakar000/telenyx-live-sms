@@ -57,7 +57,10 @@ export default function DirectSendClient() {
         }
 
         // 2. Send the SMS via our Server Action
-        await sendSMSAction(contact.id, messageText.trim());
+        const res = await sendSMSAction(contact.id, messageText.trim());
+        if (!res.success) {
+          throw new Error(res.error);
+        }
 
         showSuccessToast(`SMS sent successfully to ${cleanPhone}! Redirecting to conversation thread...`, 'Message Sent');
         
