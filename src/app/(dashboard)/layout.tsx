@@ -10,7 +10,9 @@ import {
   LogOut, 
   Menu, 
   X,
-  User
+  User,
+  Settings,
+  Activity
 } from 'lucide-react';
 import { cn, getInitials } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/Skeletons';
@@ -24,6 +26,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navigation = [
     { name: 'SMS Inbox', href: '/', icon: MessageSquare },
     { name: 'Direct SMS', href: '/send', icon: Send },
+    { name: 'Number Health', href: '/health', icon: Activity },
+    { name: 'System Settings', href: '/settings', icon: Settings },
   ];
 
   const handleLogout = () => {
