@@ -8,7 +8,7 @@ export class MessageRepository {
   }
 
   static async findByTelnyxId(telnyxId: string) {
-    return db.message.findUnique({
+    return db.message.findFirst({
       where: { telnyxId },
     });
   }
@@ -40,7 +40,7 @@ export class MessageRepository {
   }
 
   static async updateStatusByTelnyxId(telnyxId: string, status: string) {
-    return db.message.update({
+    return db.message.updateMany({
       where: { telnyxId },
       data: { status },
     });

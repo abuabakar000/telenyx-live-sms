@@ -64,7 +64,7 @@ model Message {
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   direction      String       // "INBOUND" or "OUTBOUND"
   body           String
-  telnyxId       String?      @unique
+  telnyxId       String?
   status         String       // "queued", "sending", "sent", "delivered", "failed", "received"
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
