@@ -249,8 +249,14 @@ export default function InboxClient({
         return old.map(m => m.id.startsWith('optimistic-') ? { ...m, status: 'failed' } : m);
       });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       showSuccessToast('SMS sent successfully.', 'Delivered to Gateway');
+      // Immediately transition optimistic message to actual sent message in query cache
+      if (data && selectedConvId) {
+        queryClient.setQueryData(['messages', selectedConvId], (old: any[] = []) => {
+          return old.map(m => m.id.startsWith('optimistic-') ? data : m);
+        });
+      }
       // Refetch conversations list to sync latest lastMessage fields
       startTransition(async () => {
         const freshConvs = await getConversations();
