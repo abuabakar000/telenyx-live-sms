@@ -34,7 +34,7 @@ export class MessagingService {
       // B. CTIA Compliance Footer auto-append (Conversational Human Style)
       const hasStopWording = /stop/i.test(modifiedBody);
       if (!hasStopWording) {
-        modifiedBody = `${modifiedBody.trim()} To stop, reply STOP.`;
+        modifiedBody = `${modifiedBody.trim()}\nTo stop, reply STOP.`;
       }
     }
 
