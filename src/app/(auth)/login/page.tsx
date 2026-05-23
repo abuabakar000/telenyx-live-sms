@@ -13,6 +13,8 @@ import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Logo } from '@/components/ui/Logo';
 
+import { Suspense } from 'react';
+
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
@@ -20,7 +22,7 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { success: showSuccessToast, error: showErrorToast } = useToast();
@@ -65,6 +67,69 @@ export default function LoginPage() {
   };
 
   return (
+    <Card className="glass-panel border border-slate-800/80 shadow-2xl">
+      <CardHeader className="text-center pb-2">
+        <CardTitle className="text-xl font-bold">Welcome Back</CardTitle>
+        <CardDescription className="text-xs">
+          Enter your credentials to manage CRM conversations.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
+          {/* Email */}
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-slate-300">Email Address</label>
+            <Input
+              type="email"
+              placeholder="admin@inexlabs.com"
+              icon={<Mail className="h-4 w-4" />}
+              error={errors.email?.message}
+              disabled={isLoading}
+              {...register('email')}
+            />
+          </div>
+
+          {/* Password */}
+          <div className="space-y-1">
+            <div className="flex justify-between items-center">
+              <label className="text-xs font-semibold text-slate-300">Password</label>
+            </div>
+            <div className="relative">
+              <Input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                icon={<Lock className="h-4 w-4" />}
+                error={errors.password?.message}
+                disabled={isLoading}
+                {...register('password')}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Submit */}
+          <Button
+            type="submit"
+            className="w-full mt-2 py-2.5 font-bold uppercase tracking-wider text-xs"
+            variant="primary"
+            isLoading={isLoading}
+          >
+            Sign In
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
     <div className="flex min-h-screen items-center justify-center bg-black px-4 relative overflow-hidden font-sans">
       {/* Background Orbs */}
       <div className="absolute top-1/4 left-1/4 h-[350px] w-[350px] rounded-full bg-red-600/5 blur-[120px] select-none pointer-events-none animate-pulse duration-[6s]" />
@@ -77,65 +142,10 @@ export default function LoginPage() {
           <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.3em] -mt-1.5">SMS Inbox & CRM</span>
         </div>
 
-        {/* Login Card */}
-        <Card className="glass-panel border border-slate-800/80 shadow-2xl">
-          <CardHeader className="text-center pb-2">
-            <CardTitle className="text-xl font-bold">Welcome Back</CardTitle>
-            <CardDescription className="text-xs">
-              Enter your credentials to manage CRM conversations.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
-              {/* Email */}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">Email Address</label>
-                <Input
-                  type="email"
-                  placeholder="admin@inexlabs.com"
-                  icon={<Mail className="h-4 w-4" />}
-                  error={errors.email?.message}
-                  disabled={isLoading}
-                  {...register('email')}
-                />
-              </div>
-
-              {/* Password */}
-              <div className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-semibold text-slate-300">Password</label>
-                </div>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
-                    icon={<Lock className="h-4 w-4" />}
-                    error={errors.password?.message}
-                    disabled={isLoading}
-                    {...register('password')}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Submit */}
-              <Button
-                type="submit"
-                className="w-full mt-2 py-2.5 font-bold uppercase tracking-wider text-xs"
-                variant="primary"
-                isLoading={isLoading}
-              >
-                Sign In
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+        {/* Login Card inside Suspense */}
+        <Suspense fallback={<div className="text-center text-slate-400">Loading...</div>}>
+          <LoginForm />
+        </Suspense>
 
         {/* Seeding credentials info */}
         <div className="text-center mt-6 p-4 rounded-lg bg-slate-900/30 border border-slate-800/40 backdrop-blur-sm">
