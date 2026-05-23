@@ -22,7 +22,7 @@ import {
   TrendingUp,
   XCircle
 } from 'lucide-react';
-import { updateSettingsAction } from '@/app/actions';
+import { updateSettingsAction, resetNumberHealthAction } from '@/app/actions';
 import { useToast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -77,6 +77,24 @@ export default function SettingsClient({ initialSettings, initialHealthReport }:
   const [phoneNumber, setPhoneNumber] = useState(initialSettings.telnyx_phone_number);
   const [webhookSecret, setWebhookSecret] = useState(initialSettings.telnyx_webhook_secret);
   const [orgName, setOrgName] = useState(initialSettings.organization_name);
+
+  const [isResetPending, setIsResetPending] = useState(false);
+
+  const handleResetHealthLogs = async () => {
+    if (!window.confirm('Are you sure you want to delete all SMS message logs and restart Number Health monitoring from a clean slate? This action is irreversible.')) {
+      return;
+    }
+
+    setIsResetPending(true);
+    try {
+      await resetNumberHealthAction();
+      showSuccessToast('All carrier logs and outbound SMS histories have been deleted successfully. Monitoring starting fresh!', 'Logs Reset');
+    } catch (err: any) {
+      showErrorToast(err.message || 'Failed to clear deliverability records.', 'Reset Failed');
+    } finally {
+      setIsResetPending(false);
+    }
+  };
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
@@ -286,6 +304,28 @@ export default function SettingsClient({ initialSettings, initialHealthReport }:
           </div>
         ) : (
           <div className="space-y-6">
+            {/* Reset Logs Action Banner */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-red-950/10 border border-red-500/20 rounded-xl space-y-3 sm:space-y-0 sm:space-x-4">
+              <div className="space-y-0.5">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-red-400 flex items-center space-x-1.5">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>Sender Reputation Reset Option</span>
+                </h3>
+                <p className="text-[10px] text-zinc-400 leading-normal max-w-xl">
+                  Clear historical carrier blocks and reset delivery logs to start monitoring with a fresh sender score. This deletes all database message logs.
+                </p>
+              </div>
+              <Button
+                onClick={handleResetHealthLogs}
+                variant="primary"
+                size="sm"
+                className="px-4 py-2 text-[9px] uppercase font-bold tracking-wider cursor-pointer border border-red-500/30 bg-red-950/20 text-red-200 hover:bg-red-500/20 flex-shrink-0"
+                isLoading={isResetPending}
+              >
+                <span>Reset Deliverability Logs</span>
+              </Button>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Reputation Ring Dial */}
               <Card className="glass-panel border-zinc-900 bg-zinc-950/20 shadow-xl flex flex-col justify-between">

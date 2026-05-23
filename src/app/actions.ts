@@ -715,7 +715,7 @@ export async function getNumberHealthAction() {
       healthScore = Math.max(0, 100 - deduction);
     } else {
       // Standalone Fallback / Zero-Config Demo State
-      healthScore = 80; // "Fair Health" for demonstration purposes
+      healthScore = 100;
     }
 
     // Retrieve up to 10 recent filtered messages for the diagnostic table
@@ -736,23 +736,39 @@ export async function getNumberHealthAction() {
     const hasLiveKeys = !!(configMap.get('telnyx_api_key') || process.env.TELNYX_API_KEY) && 
                          !!(configMap.get('telnyx_phone_number') || process.env.TELNYX_PHONE_NUMBER);
 
+    const isMonitoringFresh = configMap.get('is_monitoring_fresh') === 'true';
+    const isCleanSlate = hasLiveKeys || isMonitoringFresh || totalOutbound > 0;
+
     return {
-      totalOutbound: totalOutbound || 45, // mock values for zero-config fallback
-      deliveredCount: deliveredCount || 36,
-      sentCount: sentCount || 3,
-      filteredCount: filteredCount || 4,
-      failedCount: failedCount || 2,
-      healthScore,
-      recentFiltered: recentFiltered.map((m: any) => ({
-        id: m.id,
-        body: m.body,
-        status: m.status,
-        createdAt: m.createdAt.toISOString(),
-        contactName: m.conversation?.contact?.name || 'Unknown Contact',
-        phoneNumber: m.conversation?.contact?.phoneNumber || 'Unknown',
-        errorCode: '40005',
-        errorDetail: 'Spam Link Filter Triggered - Link structure flagged by carrier spam block.',
-      })),
+      totalOutbound: isCleanSlate ? totalOutbound : 45, // mock values for zero-config fallback
+      deliveredCount: isCleanSlate ? deliveredCount : 36,
+      sentCount: isCleanSlate ? sentCount : 3,
+      filteredCount: isCleanSlate ? filteredCount : 4,
+      failedCount: isCleanSlate ? failedCount : 2,
+      healthScore: isCleanSlate ? healthScore : 80,
+      recentFiltered: isCleanSlate
+        ? recentFiltered.map((m: any) => ({
+            id: m.id,
+            body: m.body,
+            status: m.status,
+            createdAt: m.createdAt.toISOString(),
+            contactName: m.conversation?.contact?.name || 'Unknown Contact',
+            phoneNumber: m.conversation?.contact?.phoneNumber || 'Unknown',
+            errorCode: '40005',
+            errorDetail: 'Spam Link Filter Triggered - Link structure flagged by carrier spam block.',
+          }))
+        : [
+            {
+              id: 'mock-1',
+              body: 'Check out our new pricing preview.inexlabs.com/slug',
+              status: 'filtered',
+              createdAt: new Date(Date.now() - 3600000).toISOString(),
+              contactName: 'Apex Heating',
+              phoneNumber: '+15550199',
+              errorCode: '40005',
+              errorDetail: 'Spam Link Filter Triggered - Link structure flagged by carrier spam block.',
+            }
+          ],
       complianceAudit: {
         tollFreeVerified: true,
         urlRandomizer: true,
@@ -764,5 +780,39 @@ export async function getNumberHealthAction() {
   } catch (error) {
     console.error('Error generating Number Health report:', error);
     throw new Error('Failed to retrieve Number Health reports.');
+  }
+}
+
+export async function resetNumberHealthAction() {
+  try {
+    // Delete all messages to start over
+    await db.message.deleteMany({});
+    
+    // Clear last messages from conversations to clean the inbox
+    await db.conversation.updateMany({
+      data: {
+        lastMessage: null,
+        unreadCount: 0
+      }
+    });
+
+    // Delete conversations too so that they start fresh with monitoring!
+    await db.conversation.deleteMany({});
+
+    // Enforce fresh monitoring mode in the system configuration settings
+    await db.systemSetting.upsert({
+      where: { key: 'is_monitoring_fresh' },
+      update: { value: 'true' },
+      create: { key: 'is_monitoring_fresh', value: 'true' },
+    });
+
+    revalidatePath('/health');
+    revalidatePath('/settings');
+    revalidatePath('/');
+    revalidatePath('/inbox');
+    return { success: true };
+  } catch (error) {
+    console.error('Error resetting number health metrics:', error);
+    throw new Error('Failed to reset number health statistics.');
   }
 }
