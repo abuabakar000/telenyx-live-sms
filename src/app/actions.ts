@@ -9,81 +9,15 @@ import { TemplateRepository } from '@/repositories/TemplateRepository';
 import { MessagingService } from '@/services/MessagingService';
 import { ContactService } from '@/services/ContactService';
 import { TemplateService } from '@/services/TemplateService';
+import { CampaignService } from '@/services/CampaignService';
 
 // ==========================================
 // 1. Messaging & Conversations Actions
 // ==========================================
 
-const mockTags = [
-  { id: 't1', name: 'Lead', color: '#10B981' },
-  { id: 't2', name: 'VIP', color: '#F59E0B' },
-  { id: 't3', name: 'Follow-up', color: '#3B82F6' },
-  { id: 't4', name: 'Support', color: '#EF4444' },
-];
-
 export async function getConversations(search?: string) {
   try {
-    const list = await ConversationRepository.findAll({ search });
-    if (list.length === 0) {
-      // Premium Mock Fallback dataset for standalone local MongoDB instances
-      return [
-        {
-          id: 'conv1',
-          contactId: 'c1',
-          lastMessage: "Sure, let's schedule a call tomorrow morning.",
-          lastMessageAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-          unreadCount: 1,
-          contact: {
-            id: 'c1',
-            name: 'Delta Plumbing',
-            phoneNumber: '+18005550101',
-            email: 'contact@deltaplumbing.com',
-            companyName: 'Delta Plumbing & Heating',
-            notes: 'Active lead from organic search campaign.',
-            optedOut: false,
-            tagIds: ['t1'],
-            tags: [mockTags[0]],
-          }
-        },
-        {
-          id: 'conv2',
-          contactId: 'c2',
-          lastMessage: 'Inex Labs: You have successfully opted out. No further messages will be sent.',
-          lastMessageAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-          unreadCount: 0,
-          contact: {
-            id: 'c2',
-            name: 'Penberg Mechanical',
-            phoneNumber: '+18005550102',
-            email: 'info@penbergmech.com',
-            companyName: 'Penberg Mechanical',
-            notes: 'Cold lead. Opted out via STOP compliance keyword.',
-            optedOut: true,
-            tagIds: ['t4'],
-            tags: [mockTags[3]],
-          }
-        },
-        {
-          id: 'conv3',
-          contactId: 'c3',
-          lastMessage: 'Just resending our custom link: preview.inexlabs.com/apex-heating',
-          lastMessageAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-          unreadCount: 0,
-          contact: {
-            id: 'c3',
-            name: 'Apex Heating',
-            phoneNumber: '+18005550103',
-            email: 'sales@apexheating.com',
-            companyName: 'Apex Heating & AC',
-            notes: 'Cold campaign lead. Message with custom link was blocked by carriers.',
-            optedOut: false,
-            tagIds: ['t3'],
-            tags: [mockTags[2]],
-          }
-        }
-      ];
-    }
-    return list;
+    return await ConversationRepository.findAll({ search });
   } catch (error) {
     console.error('Error fetching conversations:', error);
     throw new Error('Failed to retrieve conversations.');
@@ -92,91 +26,6 @@ export async function getConversations(search?: string) {
 
 export async function getMessages(conversationId: string) {
   try {
-    if (conversationId === 'conv1') {
-      return [
-        {
-          id: 'm1_1',
-          conversationId: 'conv1',
-          direction: 'OUTBOUND',
-          body: 'Hello Delta Plumbing! Thanks for requesting a custom preview page.',
-          status: 'delivered',
-          createdAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-        },
-        {
-          id: 'm1_2',
-          conversationId: 'conv1',
-          direction: 'INBOUND',
-          body: "Sure, let's schedule a call tomorrow morning.",
-          status: 'received',
-          createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-        }
-      ];
-    }
-    if (conversationId === 'conv2') {
-      return [
-        {
-          id: 'm2_1',
-          conversationId: 'conv2',
-          direction: 'OUTBOUND',
-          body: 'Hi Penberg! Check out your live mechanics dashboard here: preview.inexlabs.com/penberg-mechanical',
-          status: 'delivered',
-          createdAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-        },
-        {
-          id: 'm2_2',
-          conversationId: 'conv2',
-          direction: 'INBOUND',
-          body: 'STOP',
-          status: 'received',
-          createdAt: new Date(Date.now() - 11 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 11 * 60 * 1000).toISOString(),
-        },
-        {
-          id: 'm2_3',
-          conversationId: 'conv2',
-          direction: 'OUTBOUND',
-          body: 'Inex Labs: You have successfully opted out. No further messages will be sent.',
-          status: 'delivered',
-          createdAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-        }
-      ];
-    }
-    if (conversationId === 'conv3') {
-      return [
-        {
-          id: 'm3_1',
-          conversationId: 'conv3',
-          direction: 'OUTBOUND',
-          body: "Hi Apex! Let's chat about your heating system preview page: preview.inexlabs.com/apex-heating",
-          status: 'filtered',
-          createdAt: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
-        },
-        {
-          id: 'm3_2',
-          conversationId: 'conv3',
-          direction: 'OUTBOUND',
-          body: 'Hello Apex! Your new dashboard is online at preview.inexlabs.com/apex-heating',
-          status: 'filtered',
-          createdAt: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
-        },
-        {
-          id: 'm3_3',
-          conversationId: 'conv3',
-          direction: 'OUTBOUND',
-          body: 'Just resending our custom link: preview.inexlabs.com/apex-heating',
-          status: 'filtered',
-          createdAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-        }
-      ];
-    }
-
     // Reset unread count since we are opening the conversation thread
     await ConversationRepository.resetUnread(conversationId);
     return await MessageRepository.findByConversationId(conversationId);
@@ -203,96 +52,10 @@ export async function sendSMSAction(contactId: string, body: string) {
 
 export async function getContactsAction(search?: string, tagId?: string) {
   try {
-    const list = await ContactService.listContacts({ search, tagId });
-    if (list.length === 0) {
-      const mockContacts = [
-        {
-          id: 'c1',
-          name: 'Delta Plumbing',
-          phoneNumber: '+18005550101',
-          email: 'contact@deltaplumbing.com',
-          companyName: 'Delta Plumbing & Heating',
-          notes: 'Active lead from organic search campaign.',
-          optedOut: false,
-          tagIds: ['t1'],
-          tags: [mockTags[0]],
-        },
-        {
-          id: 'c2',
-          name: 'Penberg Mechanical',
-          phoneNumber: '+18005550102',
-          email: 'info@penbergmech.com',
-          companyName: 'Penberg Mechanical',
-          notes: 'Cold lead. Opted out via STOP compliance keyword.',
-          optedOut: true,
-          tagIds: ['t4'],
-          tags: [mockTags[3]],
-        },
-        {
-          id: 'c3',
-          name: 'Apex Heating',
-          phoneNumber: '+18005550103',
-          email: 'sales@apexheating.com',
-          companyName: 'Apex Heating & AC',
-          notes: 'Cold campaign lead. Message with custom link was blocked by carriers.',
-          optedOut: false,
-          tagIds: ['t3'],
-          tags: [mockTags[2]],
-        },
-      ];
-      if (tagId) {
-        return mockContacts.filter(c => c.tagIds.includes(tagId));
-      }
-      if (search) {
-        return mockContacts.filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || c.phoneNumber.includes(search));
-      }
-      return mockContacts;
-    }
-    return list;
+    return await ContactService.listContacts({ search, tagId });
   } catch (error) {
     console.error('Error fetching contacts:', error);
-    const mockContacts = [
-      {
-        id: 'c1',
-        name: 'Delta Plumbing',
-        phoneNumber: '+18005550101',
-        email: 'contact@deltaplumbing.com',
-        companyName: 'Delta Plumbing & Heating',
-        notes: 'Active lead from organic search campaign.',
-        optedOut: false,
-        tagIds: ['t1'],
-        tags: [mockTags[0]],
-      },
-      {
-        id: 'c2',
-        name: 'Penberg Mechanical',
-        phoneNumber: '+18005550102',
-        email: 'info@penbergmech.com',
-        companyName: 'Penberg Mechanical',
-        notes: 'Cold lead. Opted out via STOP compliance keyword.',
-        optedOut: true,
-        tagIds: ['t4'],
-        tags: [mockTags[3]],
-      },
-      {
-        id: 'c3',
-        name: 'Apex Heating',
-        phoneNumber: '+18005550103',
-        email: 'sales@apexheating.com',
-        companyName: 'Apex Heating & AC',
-        notes: 'Cold campaign lead. Message with custom link was blocked by carriers.',
-        optedOut: false,
-        tagIds: ['t3'],
-        tags: [mockTags[2]],
-      },
-    ];
-    if (tagId) {
-      return mockContacts.filter(c => c.tagIds.includes(tagId));
-    }
-    if (search) {
-      return mockContacts.filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || c.phoneNumber.includes(search));
-    }
-    return mockContacts;
+    throw new Error('Failed to retrieve contacts.');
   }
 }
 
@@ -367,14 +130,10 @@ export async function importCSVAction(csvContent: string) {
 
 export async function listTagsAction() {
   try {
-    const list = await ContactService.listTags();
-    if (list.length === 0) {
-      return mockTags;
-    }
-    return list;
+    return await ContactService.listTags();
   } catch (error) {
     console.error('Error listing tags:', error);
-    return mockTags;
+    throw new Error('Failed to retrieve tags.');
   }
 }
 
@@ -395,60 +154,10 @@ export async function createTagAction(name: string, color?: string) {
 
 export async function getTemplatesAction(category?: string) {
   try {
-    const list = await TemplateService.listTemplates({ category });
-    if (list.length === 0) {
-      const mockTemplates = [
-        {
-          id: 'temp1',
-          title: 'Introductory Message',
-          body: 'Hi {{name}}, thanks for reaching out to Inex Labs. How can we help you today? (Reply STOP to opt out)',
-          category: 'Introduction',
-        },
-        {
-          id: 'temp2',
-          title: 'Follow-Up Lead',
-          body: 'Hi {{name}}, just checking in to see if you had any questions about our services. Let us know if you want to chat! (Reply STOP to opt out)',
-          category: 'Follow-up',
-        },
-        {
-          id: 'temp3',
-          title: 'Support Resolution',
-          body: 'Hi {{name}}, we have marked your issue as resolved. Thank you for your patience! If you need anything else, just reply to this SMS. (Reply STOP to opt out)',
-          category: 'Support',
-        },
-      ];
-      if (category) {
-        return mockTemplates.filter(t => t.category.toLowerCase() === category.toLowerCase());
-      }
-      return mockTemplates;
-    }
-    return list;
+    return await TemplateService.listTemplates({ category });
   } catch (error) {
     console.error('Error fetching templates:', error);
-    const mockTemplates = [
-      {
-        id: 'temp1',
-        title: 'Introductory Message',
-        body: 'Hi {{name}}, thanks for reaching out to Inex Labs. How can we help you today? (Reply STOP to opt out)',
-        category: 'Introduction',
-      },
-      {
-        id: 'temp2',
-        title: 'Follow-Up Lead',
-        body: 'Hi {{name}}, just checking in to see if you had any questions about our services. Let us know if you want to chat! (Reply STOP to opt out)',
-        category: 'Follow-up',
-      },
-      {
-        id: 'temp3',
-        title: 'Support Resolution',
-        body: 'Hi {{name}}, we have marked your issue as resolved. Thank you for your patience! If you need anything else, just reply to this SMS. (Reply STOP to opt out)',
-        category: 'Support',
-      },
-    ];
-    if (category) {
-      return mockTemplates.filter(t => t.category.toLowerCase() === category.toLowerCase());
-    }
-    return mockTemplates;
+    throw new Error('Failed to retrieve templates.');
   }
 }
 
@@ -476,14 +185,10 @@ export async function deleteTemplateAction(id: string) {
 
 export async function getTemplateCategoriesAction() {
   try {
-    const list = await TemplateService.listCategories();
-    if (list.length === 0) {
-      return ['Introduction', 'Follow-up', 'Support'];
-    }
-    return list;
+    return await TemplateService.listCategories();
   } catch (error) {
     console.error('Error fetching template categories:', error);
-    return ['Introduction', 'Follow-up', 'Support'];
+    return [];
   }
 }
 
@@ -551,23 +256,20 @@ export async function getAnalyticsAction() {
     const receivedToday = await MessageRepository.countReceivedToday();
     const delivery = await MessageRepository.getDeliveryStats();
     
-    // Count active conversations (conversations with at least 1 message)
+    // Count active conversations
     const activeConversations = await db.conversation.count();
-    
     const recentActivity = await MessageRepository.getRecentActivity(6);
 
-    // Generate mock historical data for Recharts (sent/received over past 7 days)
     const analyticsChartData = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const label = d.toLocaleDateString('en-US', { weekday: 'short' });
       
-      // Seed slightly varied metrics for gorgeous charts
       analyticsChartData.push({
         name: label,
-        sent: Math.floor(Math.random() * 25) + (i === 6 ? sentToday : 5),
-        received: Math.floor(Math.random() * 20) + (i === 6 ? receivedToday : 3),
+        sent: i === 6 ? sentToday : 0,
+        received: i === 6 ? receivedToday : 0,
       });
     }
 
@@ -589,64 +291,12 @@ export async function getAnalyticsAction() {
 // 7. Bulk SMS Campaigns Actions
 // ==========================================
 
-import { CampaignService } from '@/services/CampaignService';
-
 export async function getCampaignsAction() {
   try {
-    const list = await CampaignService.getCampaigns();
-    if (list.length === 0) {
-      return [
-        {
-          id: 'camp1',
-          name: 'Spring Mechanical Promo',
-          body: 'Hi {{name}}! Spring is here. Get 15% off HVAC checkups at preview.inexlabs.com/apex-heating (Reply STOP to opt out)',
-          status: 'completed',
-          sentCount: 15,
-          failedCount: 3,
-          totalCount: 18,
-          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        },
-        {
-          id: 'camp2',
-          name: 'Opt-Out Notice Followup',
-          body: 'Hello {{name}}, we have updated our messaging terms. Let us know if you want to opt back in anytime!',
-          status: 'completed',
-          sentCount: 5,
-          failedCount: 0,
-          totalCount: 5,
-          createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        }
-      ];
-    }
-    return list;
+    return await CampaignService.getCampaigns();
   } catch (error) {
     console.error('Error fetching campaigns:', error);
-    return [
-      {
-        id: 'camp1',
-        name: 'Spring Mechanical Promo',
-        body: 'Hi {{name}}! Spring is here. Get 15% off HVAC checkups at preview.inexlabs.com/apex-heating (Reply STOP to opt out)',
-        status: 'completed',
-        sentCount: 15,
-        failedCount: 3,
-        totalCount: 18,
-        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: 'camp2',
-        name: 'Opt-Out Notice Followup',
-        body: 'Hello {{name}}, we have updated our messaging terms. Let us know if you want to opt back in anytime!',
-        status: 'completed',
-        sentCount: 5,
-        failedCount: 0,
-        totalCount: 5,
-        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      }
-    ];
+    throw new Error('Failed to retrieve campaigns.');
   }
 }
 
@@ -661,6 +311,10 @@ export async function launchCampaignAction(name: string, body: string, tagIds: s
   }
 }
 
+// ==========================================
+// 8. Carrier Inspection & Health Actions
+// ==========================================
+
 export async function getCarrierAlertStatusAction() {
   try {
     const recentOutbound = await db.message.findMany({
@@ -668,20 +322,15 @@ export async function getCarrierAlertStatusAction() {
       orderBy: { createdAt: 'desc' },
       take: 5,
     });
-    let filteredCount = recentOutbound.filter(m => m.status === 'filtered').length;
+    const filteredCount = recentOutbound.filter(m => m.status === 'filtered').length;
     
-    // Standalone fallback: if DB has less than 3 messages, mock 3 filtered messages for demo
-    if (recentOutbound.length < 3) {
-      filteredCount = 3;
-    }
-
     return {
       isActive: filteredCount >= 3,
       filteredCount,
     };
   } catch (err) {
     console.error('Error fetching carrier alert status:', err);
-    return { isActive: true, filteredCount: 3 }; // standard fallback
+    return { isActive: false, filteredCount: 0 };
   }
 }
 
@@ -707,18 +356,12 @@ export async function getNumberHealthAction() {
       where: { direction: 'OUTBOUND', status: 'failed' },
     });
 
-    // Calculate Sender Health Score
-    // Default 100 if no outbound messages. Deduct 15% per filter block, 5% per standard failure. Capped between 0 and 100.
     let healthScore = 100;
     if (totalOutbound > 0) {
       const deduction = (filteredCount * 15) + (failedCount * 5);
       healthScore = Math.max(0, 100 - deduction);
-    } else {
-      // Standalone Fallback / Zero-Config Demo State
-      healthScore = 100;
     }
 
-    // Retrieve up to 10 recent filtered messages for the diagnostic table
     const recentFiltered = await db.message.findMany({
       where: { direction: 'OUTBOUND', status: 'filtered' },
       orderBy: { createdAt: 'desc' },
@@ -730,45 +373,28 @@ export async function getNumberHealthAction() {
       },
     });
 
-    // Check if live API Key and Outbound Phone are configured
     const settings = await db.systemSetting.findMany();
     const configMap = new Map<string, string>(settings.map((s: any) => [s.key, s.value]));
     const hasLiveKeys = !!(configMap.get('telnyx_api_key') || process.env.TELNYX_API_KEY) && 
                          !!(configMap.get('telnyx_phone_number') || process.env.TELNYX_PHONE_NUMBER);
 
-    const isMonitoringFresh = configMap.get('is_monitoring_fresh') === 'true';
-    const isCleanSlate = hasLiveKeys || isMonitoringFresh || totalOutbound > 0;
-
     return {
-      totalOutbound: isCleanSlate ? totalOutbound : 45, // mock values for zero-config fallback
-      deliveredCount: isCleanSlate ? deliveredCount : 36,
-      sentCount: isCleanSlate ? sentCount : 3,
-      filteredCount: isCleanSlate ? filteredCount : 4,
-      failedCount: isCleanSlate ? failedCount : 2,
-      healthScore: isCleanSlate ? healthScore : 80,
-      recentFiltered: isCleanSlate
-        ? recentFiltered.map((m: any) => ({
-            id: m.id,
-            body: m.body,
-            status: m.status,
-            createdAt: m.createdAt.toISOString(),
-            contactName: m.conversation?.contact?.name || 'Unknown Contact',
-            phoneNumber: m.conversation?.contact?.phoneNumber || 'Unknown',
-            errorCode: '40005',
-            errorDetail: 'Spam Link Filter Triggered - Link structure flagged by carrier spam block.',
-          }))
-        : [
-            {
-              id: 'mock-1',
-              body: 'Check out our new pricing preview.inexlabs.com/slug',
-              status: 'filtered',
-              createdAt: new Date(Date.now() - 3600000).toISOString(),
-              contactName: 'Apex Heating',
-              phoneNumber: '+15550199',
-              errorCode: '40005',
-              errorDetail: 'Spam Link Filter Triggered - Link structure flagged by carrier spam block.',
-            }
-          ],
+      totalOutbound,
+      deliveredCount,
+      sentCount,
+      filteredCount,
+      failedCount,
+      healthScore,
+      recentFiltered: recentFiltered.map((m: any) => ({
+        id: m.id,
+        body: m.body,
+        status: m.status,
+        createdAt: m.createdAt.toISOString(),
+        contactName: m.conversation?.contact?.name || 'Unknown Contact',
+        phoneNumber: m.conversation?.contact?.phoneNumber || 'Unknown',
+        errorCode: '40005',
+        errorDetail: 'Spam Link Filter Triggered - Link structure flagged by carrier spam block.',
+      })),
       complianceAudit: {
         tollFreeVerified: true,
         urlRandomizer: true,
