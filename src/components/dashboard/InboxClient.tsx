@@ -206,15 +206,15 @@ export default function InboxClient({
 
   // 3. Send SMS Mutation
   const sendSMSMutation = useMutation({
-    mutationFn: async () => {
-      const res = await sendSMSAction(activeContact.id, messageBody);
+    mutationFn: async (text: string) => {
+      const res = await sendSMSAction(activeContact.id, text);
       if (!res.success) {
         throw new Error(res.error);
       }
       return res.message;
     },
-    onMutate: async () => {
-      const tempMsgBody = messageBody;
+    onMutate: async (text: string) => {
+      const tempMsgBody = text;
       setMessageBody(''); // clear composer instantly
       setCharCount(0);
 
@@ -261,8 +261,9 @@ export default function InboxClient({
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!messageBody.trim() || !activeContact) return;
-    sendSMSMutation.mutate();
+    const text = messageBody.trim();
+    if (!text || !activeContact) return;
+    sendSMSMutation.mutate(text);
   };
 
   // Composer segment calculation
