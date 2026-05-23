@@ -116,6 +116,7 @@ async function main() {
         direction: 'OUTBOUND',
         body: 'Hello Delta Plumbing! Thanks for requesting a custom preview page.',
         status: 'delivered',
+        telnyxId: 'seed_msg_101',
         createdAt: new Date(Date.now() - 60 * 60 * 1000),
         updatedAt: new Date(Date.now() - 60 * 60 * 1000),
       },
@@ -124,6 +125,7 @@ async function main() {
         direction: 'INBOUND',
         body: "Sure, let's schedule a call tomorrow morning.",
         status: 'received',
+        telnyxId: 'seed_msg_102',
         createdAt: new Date(Date.now() - 5 * 60 * 1000),
         updatedAt: new Date(Date.now() - 5 * 60 * 1000),
       }
@@ -166,6 +168,7 @@ async function main() {
         direction: 'OUTBOUND',
         body: 'Hi Penberg! Check out your live mechanics dashboard here: preview.inexlabs.com/penberg-mechanical',
         status: 'delivered',
+        telnyxId: 'seed_msg_201',
         createdAt: new Date(Date.now() - 15 * 60 * 1000),
         updatedAt: new Date(Date.now() - 15 * 60 * 1000),
       },
@@ -174,6 +177,7 @@ async function main() {
         direction: 'INBOUND',
         body: 'STOP',
         status: 'received',
+        telnyxId: 'seed_msg_202',
         createdAt: new Date(Date.now() - 11 * 60 * 1000),
         updatedAt: new Date(Date.now() - 11 * 60 * 1000),
       },
@@ -182,6 +186,7 @@ async function main() {
         direction: 'OUTBOUND',
         body: 'Inex Labs: You have successfully opted out. No further messages will be sent.',
         status: 'delivered',
+        telnyxId: 'seed_msg_203',
         createdAt: new Date(Date.now() - 10 * 60 * 1000),
         updatedAt: new Date(Date.now() - 10 * 60 * 1000),
       }
@@ -224,6 +229,7 @@ async function main() {
         direction: 'OUTBOUND',
         body: 'Hi Apex! Let\'s chat about your heating system preview page: preview.inexlabs.com/apex-heating',
         status: 'filtered', // Carrier Filter Block!
+        telnyxId: 'seed_msg_301',
         createdAt: new Date(Date.now() - 4 * 60 * 1000),
         updatedAt: new Date(Date.now() - 4 * 60 * 1000),
       },
@@ -232,6 +238,7 @@ async function main() {
         direction: 'OUTBOUND',
         body: 'Hello Apex! Your new dashboard is online at preview.inexlabs.com/apex-heating',
         status: 'filtered', // Carrier Filter Block!
+        telnyxId: 'seed_msg_302',
         createdAt: new Date(Date.now() - 3 * 60 * 1000),
         updatedAt: new Date(Date.now() - 3 * 60 * 1000),
       },
@@ -240,6 +247,7 @@ async function main() {
         direction: 'OUTBOUND',
         body: 'Just resending our custom link: preview.inexlabs.com/apex-heating',
         status: 'filtered', // Carrier Filter Block! (Three filtered outbound messages globally trigger the health alert)
+        telnyxId: 'seed_msg_303',
         createdAt: new Date(Date.now() - 2 * 60 * 1000),
         updatedAt: new Date(Date.now() - 2 * 60 * 1000),
       }
