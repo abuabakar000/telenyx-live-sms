@@ -163,7 +163,36 @@ export async function createTagAction(name: string, color?: string) {
 
 export async function getTemplatesAction(category?: string) {
   try {
-    return await TemplateService.listTemplates({ category });
+    let list = await TemplateService.listTemplates({ category });
+    
+    // Auto-populate the database with the user's specific requested templates if empty
+    if (list.length === 0 && !category) {
+      const templatesToSeed = [
+        {
+          title: 'Web Concept Presentation',
+          body: "Hi,\n\nHere's the concept I put together for you:\n\n[link]",
+          category: 'Presentation',
+        },
+        {
+          title: 'Concept Follow-up',
+          body: "Just checking in on the concept I sent over.\n\nHappy to make any changes you'd like.",
+          category: 'Follow-up',
+        },
+        {
+          title: 'Pricing & Maintenance',
+          body: "For a site like this, it's $500 CAD, and hosting/maintenance is $80/month.",
+          category: 'Pricing',
+        },
+      ];
+
+      for (const t of templatesToSeed) {
+        await db.messageTemplate.create({ data: t });
+      }
+
+      list = await TemplateService.listTemplates({ category });
+    }
+
+    return list;
   } catch (error) {
     console.error('Error fetching templates:', error);
     throw new Error('Failed to retrieve templates.');

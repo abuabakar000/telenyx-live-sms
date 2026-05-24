@@ -46,19 +46,19 @@ async function main() {
   // Create default message templates
   const defaultTemplates = [
     {
-      title: 'Introductory Message',
-      body: 'Hi {{name}}, thanks for reaching out to Inex Labs. How can we help you today?',
-      category: 'Introduction',
+      title: 'Web Concept Presentation',
+      body: "Hi,\n\nHere's the concept I put together for you:\n\n[link]",
+      category: 'Presentation',
     },
     {
-      title: 'Follow-Up Lead',
-      body: 'Hi {{name}}, just checking in to see if you had any questions about our services. Let us know if you want to chat!',
+      title: 'Concept Follow-up',
+      body: "Just checking in on the concept I sent over.\n\nHappy to make any changes you'd like.",
       category: 'Follow-up',
     },
     {
-      title: 'Support Resolution',
-      body: 'Hi {{name}}, we have marked your issue as resolved. Thank you for your patience! If you need anything else, just reply to this SMS.',
-      category: 'Support',
+      title: 'Pricing & Maintenance',
+      body: "For a site like this, it's $500 CAD, and hosting/maintenance is $80/month.",
+      category: 'Pricing',
     },
   ];
 
