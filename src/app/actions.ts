@@ -326,8 +326,16 @@ export async function launchCampaignAction(name: string, body: string, tagIds: s
 
 export async function getCarrierAlertStatusAction() {
   try {
+    const settings = await db.systemSetting.findMany();
+    const configMap = new Map<string, string>(settings.map((s: any) => [s.key, s.value]));
+    const resetAtStr = configMap.get('health_reset_at');
+    const healthResetAt = resetAtStr ? new Date(resetAtStr) : new Date(0);
+
     const recentOutbound = await db.message.findMany({
-      where: { direction: 'OUTBOUND' },
+      where: { 
+        direction: 'OUTBOUND',
+        createdAt: { gte: healthResetAt }
+      },
       orderBy: { createdAt: 'desc' },
       take: 5,
     });
@@ -345,24 +353,48 @@ export async function getCarrierAlertStatusAction() {
 
 export async function getNumberHealthAction() {
   try {
+    const settings = await db.systemSetting.findMany();
+    const configMap = new Map<string, string>(settings.map((s: any) => [s.key, s.value]));
+    const resetAtStr = configMap.get('health_reset_at');
+    const healthResetAt = resetAtStr ? new Date(resetAtStr) : new Date(0);
+
     const totalOutbound = await db.message.count({
-      where: { direction: 'OUTBOUND' },
+      where: { 
+        direction: 'OUTBOUND',
+        createdAt: { gte: healthResetAt }
+      },
     });
 
     const deliveredCount = await db.message.count({
-      where: { direction: 'OUTBOUND', status: 'delivered' },
+      where: { 
+        direction: 'OUTBOUND', 
+        status: 'delivered',
+        createdAt: { gte: healthResetAt }
+      },
     });
 
     const sentCount = await db.message.count({
-      where: { direction: 'OUTBOUND', status: 'sent' },
+      where: { 
+        direction: 'OUTBOUND', 
+        status: 'sent',
+        createdAt: { gte: healthResetAt }
+      },
     });
 
     const filteredCount = await db.message.count({
-      where: { direction: 'OUTBOUND', status: 'filtered' },
+      where: { 
+        direction: 'OUTBOUND', 
+        status: 'filtered',
+        createdAt: { gte: healthResetAt }
+      },
     });
 
     const failedCount = await db.message.count({
-      where: { direction: 'OUTBOUND', status: 'failed' },
+      where: { 
+        direction: 'OUTBOUND', 
+        status: 'failed',
+        createdAt: { gte: healthResetAt }
+      },
     });
 
     let healthScore = 100;
@@ -372,7 +404,11 @@ export async function getNumberHealthAction() {
     }
 
     const recentFiltered = await db.message.findMany({
-      where: { direction: 'OUTBOUND', status: 'filtered' },
+      where: { 
+        direction: 'OUTBOUND', 
+        status: 'filtered',
+        createdAt: { gte: healthResetAt }
+      },
       orderBy: { createdAt: 'desc' },
       take: 10,
       include: {
@@ -382,8 +418,6 @@ export async function getNumberHealthAction() {
       },
     });
 
-    const settings = await db.systemSetting.findMany();
-    const configMap = new Map<string, string>(settings.map((s: any) => [s.key, s.value]));
     const hasLiveKeys = !!(configMap.get('telnyx_api_key') || process.env.TELNYX_API_KEY) && 
                          !!(configMap.get('telnyx_phone_number') || process.env.TELNYX_PHONE_NUMBER);
 
@@ -420,19 +454,12 @@ export async function getNumberHealthAction() {
 
 export async function resetNumberHealthAction() {
   try {
-    // Delete all messages to start over
-    await db.message.deleteMany({});
-    
-    // Clear last messages from conversations to clean the inbox
-    await db.conversation.updateMany({
-      data: {
-        lastMessage: null,
-        unreadCount: 0
-      }
+    // Simply set the reset timestamp in settings
+    await db.systemSetting.upsert({
+      where: { key: 'health_reset_at' },
+      update: { value: new Date().toISOString() },
+      create: { key: 'health_reset_at', value: new Date().toISOString() },
     });
-
-    // Delete conversations too so that they start fresh with monitoring!
-    await db.conversation.deleteMany({});
 
     // Enforce fresh monitoring mode in the system configuration settings
     await db.systemSetting.upsert({
