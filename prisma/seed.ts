@@ -47,7 +47,7 @@ async function main() {
   const defaultTemplates = [
     {
       title: 'Web Concept Presentation',
-      body: "Hi,\n\nHere's the concept I put together for you:\n\n[link]",
+      body: "Hi,\n\nHere's the concept I put together for :\n\n[link]",
       category: 'Presentation',
     },
     {

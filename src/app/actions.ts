@@ -163,36 +163,44 @@ export async function createTagAction(name: string, color?: string) {
 
 export async function getTemplatesAction(category?: string) {
   try {
-    let list = await TemplateService.listTemplates({ category });
-    
-    // Auto-populate the database with the user's specific requested templates if empty
-    if (list.length === 0 && !category) {
-      const templatesToSeed = [
-        {
-          title: 'Web Concept Presentation',
-          body: "Hi,\n\nHere's the concept I put together for you:\n\n[link]",
-          category: 'Presentation',
-        },
-        {
-          title: 'Concept Follow-up',
-          body: "Just checking in on the concept I sent over.\n\nHappy to make any changes you'd like.",
-          category: 'Follow-up',
-        },
-        {
-          title: 'Pricing & Maintenance',
-          body: "For a site like this, it's $500 CAD, and hosting/maintenance is $80/month.",
-          category: 'Pricing',
-        },
-      ];
+    const templatesToSeed = [
+      {
+        title: 'Web Concept Presentation',
+        body: "Hi,\n\nHere's the concept I put together for :\n\n[link]",
+        category: 'Presentation',
+      },
+      {
+        title: 'Concept Follow-up',
+        body: "Just checking in on the concept I sent over.\n\nHappy to make any changes you'd like.",
+        category: 'Follow-up',
+      },
+      {
+        title: 'Pricing & Maintenance',
+        body: "For a site like this, it's $500 CAD, and hosting/maintenance is $80/month.",
+        category: 'Pricing',
+      },
+    ];
 
+    // Enforce/Upsert the custom requested templates in the database
+    if (!category) {
       for (const t of templatesToSeed) {
-        await db.messageTemplate.create({ data: t });
+        const existing = await db.messageTemplate.findFirst({
+          where: { title: t.title }
+        });
+        if (existing) {
+          if (existing.body !== t.body) {
+            await db.messageTemplate.update({
+              where: { id: existing.id },
+              data: { body: t.body, category: t.category }
+            });
+          }
+        } else {
+          await db.messageTemplate.create({ data: t });
+        }
       }
-
-      list = await TemplateService.listTemplates({ category });
     }
 
-    return list;
+    return await TemplateService.listTemplates({ category });
   } catch (error) {
     console.error('Error fetching templates:', error);
     throw new Error('Failed to retrieve templates.');
