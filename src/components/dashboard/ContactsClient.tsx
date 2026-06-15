@@ -435,7 +435,14 @@ export default function ContactsClient({ initialContacts, allTags }: ContactsCli
                     placeholder="E.164, e.g. +18885550199"
                     disabled={isPending}
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const cleaned = val.replace(/[^\d+]/g, '');
+                      const formatted = cleaned.startsWith('+') 
+                        ? '+' + cleaned.slice(1).replace(/\+/g, '')
+                        : cleaned.replace(/\+/g, '');
+                      setPhone(formatted);
+                    }}
                   />
                 </div>
 

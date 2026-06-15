@@ -96,7 +96,14 @@ export default function DirectSendClient() {
                   required
                   placeholder="e.g. +18885550199 or 8885550199"
                   value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const cleaned = val.replace(/[^\d+]/g, '');
+                    const formatted = cleaned.startsWith('+') 
+                      ? '+' + cleaned.slice(1).replace(/\+/g, '')
+                      : cleaned.replace(/\+/g, '');
+                    setPhoneNumber(formatted);
+                  }}
                   disabled={isPending}
                 />
               </div>
